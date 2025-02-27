@@ -5,6 +5,11 @@ from nbconvert.preprocessors import ExecutePreprocessor
 import re
 import pandas as pd
 import numpy as np
+import os
+print(os.getcwd())
+os.chdir('Classesomeeda/.Assignment/Week5/complete-eda-assignment-group-c-coding-mafia')
+print(os.getcwd())
+
 
 class TestClimateEDA(unittest.TestCase):
     @classmethod
