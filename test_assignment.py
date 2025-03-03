@@ -40,7 +40,7 @@ class TestClimateEDA(unittest.TestCase):
             
     def test_data_loading(self):
         """Test that climate data is loaded"""
-        self.assertIn("read_csv('../data/Climate_Change_Indicators.csv')", self.all_code, "Data file not loaded correctly")
+        self.assertIn("read_csv('data/Climate_Change_Indicators.csv')", self.all_code, "Data file not loaded correctly")
         
     def test_yearly_aggregation(self):
         """Test that data is aggregated by year"""
