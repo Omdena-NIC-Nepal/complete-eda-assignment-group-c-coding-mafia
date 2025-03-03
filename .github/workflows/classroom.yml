@@ -11,43 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install numpy pandas matplotlib seaborn nbformat nbconvert jupyter_client
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas matplotlib seaborn nbformat nbconvert jupyter_client ipykernel
 
-    - name: Run tests and calculate grade
-      run: |
-        # Generate climate data
-        python climate_data.py
-        
-        # Run tests
-        python -m unittest test_climate_eda.py
-        
-        # Extract grade from test output
-        GRADE=$(python -c "
-        import unittest
-        from test_climate_eda import TestClimateEDA
-        test_case = TestClimateEDA()
-        print(test_case.calculate_grade())
-          ")
-          
-        echo "Grade: $GRADE/100"
-        echo "GRADE=$GRADE" >> $GITHUB_ENV
+      - name: Run notebook
+        run: |
+          jupyter nbconvert --to notebook --execute climate_eda.ipynb --output executed_climate_eda.ipynb
 
-    - name: Create grade summary
-      run: |
-        echo "## Assignment Grade: ${{ env.GRADE }}/100" > grade_summary.md
+      - name: Run tests & parse final grade
+        run: |
+          output=$(python test_assignment.py)
+          echo "$output"
 
-    - name: Upload grade summary
-      uses: actions/upload-artifact@v2
-      with:
-        name: grade-summary
-        path: grade_summary.md
+          # Parse the line "Final Grade: X/100"
+          GRADE=$(echo "$output" | grep "Final Grade:" | sed -E 's/.*Final Grade: ([0-9]+)\/100.*/\1/')
+
+          echo "Extracted Grade: $GRADE"
+
+          if [[ -z "$GRADE" ]]; then
+            echo 'GRADE could not be determined! Setting to 0.'
+            GRADE=0
+          fi
+
+          echo "GRADE=$GRADE" >> $GITHUB_ENV
+
+      - name: Create grade summary
+        run: |
+          echo "## Assignment Grade: ${{ env.GRADE }}/100" > grade_summary.md
+
+      - name: Upload grade summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: grade-summary
+          path: grade_summary.md
